@@ -1,9 +1,8 @@
 import csv
 from django.core.management.base import BaseCommand, CommandParser
 from dataentry.models import *
-import datetime
 from django.apps import apps
-
+from dataentry.utils import generate_csv_file
 
 # this command export data from any models
 class Command(BaseCommand):
@@ -28,10 +27,8 @@ class Command(BaseCommand):
             return
 
         datas = model.objects.all()
+        file_path = generate_csv_file(model_name)
 
-        timestamp = datetime.datetime.now().strftime("%Y-%m-%d")
-
-        file_path = f"exported_{model_name}_data_{timestamp}.csv"
 
         with open(file_path, "w", newline="") as file:
             writer = csv.writer(file)
