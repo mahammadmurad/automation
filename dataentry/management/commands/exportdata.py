@@ -1,6 +1,5 @@
 import csv
-from django.core.management.base import BaseCommand, CommandParser
-from dataentry.models import *
+from django.core.management.base import BaseCommand
 from django.apps import apps
 from dataentry.utils import generate_csv_file
 

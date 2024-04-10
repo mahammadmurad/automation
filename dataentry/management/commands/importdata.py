@@ -1,9 +1,6 @@
-from django.core.management.base import BaseCommand, CommandError
+from django.core.management.base import BaseCommand
 from dataentry.utils import check_csv_errors
-# from dataentry.models import Student
 import csv
-from django.apps import apps
-from django.db import DataError
 
 
 class Command(BaseCommand):
