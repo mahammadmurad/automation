@@ -26,7 +26,7 @@ SECRET_KEY = config("SECRET_KEY")
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = config("DEBUG", default=False, cast=bool)
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -170,3 +170,7 @@ CKEDITOR_CONFIGS = {
         "height": 200,
     },
 }
+
+
+CSRF_TRUSTED_ORIGINS = ["https://32fb-188-253-218-235.ngrok-free.app/"]
+BASE_URL = "https://32fb-188-253-218-235.ngrok-free.app/"

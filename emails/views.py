@@ -1,9 +1,13 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from .models import *
 from .forms import EmailForm
 from django.contrib import messages
 from .tasks import send_email_task
 from dataentry.utils import send_email_notification
+from django.http import HttpResponse, HttpResponseRedirect
+from django.utils import timezone
+from django.db.models import Sum
+
 
 def send_email(request):
     if request.method == 'POST':
@@ -30,12 +34,13 @@ def send_email(request):
 
             email_id = email.id
 
-            #send without celery
-            send_email_notification(
-                mail_subject, message, to_email, attachment, email_id
-            )
+            # send without celery
+            # send_email_notification(
+            #     mail_subject, message, to_email, attachment, email_id
+            # )
+            
             # Handover email sending task to celery
-            #send_email_task.delay(mail_subject, message, to_email, attachment, email_id)
+            send_email_task.delay(mail_subject, message, to_email, attachment, email_id)
 
             # Display a success message
             messages.success(request, 'Email sent successfully!')
@@ -45,3 +50,54 @@ def send_email(request):
         context = {
             'email_form': email,}
     return render(request, "emails/send-email.html", context)
+
+
+def track_click(request, unique_id):
+    # Logic to store the tracking info
+    try:
+        email_tracking = EmailTracking.objects.get(unique_id=unique_id)
+        url = request.GET.get("url")
+        # Check if the clicked_at field is already set or not
+        if not email_tracking.clicked_at:
+            email_tracking.clicked_at = timezone.now()
+            email_tracking.save()
+            return HttpResponseRedirect(url)
+        else:
+            return HttpResponseRedirect(url)
+    except:
+        return HttpResponse("Email tracking record not found!")
+
+
+def track_open(request, unique_id):
+    # Logic to store the tracking info
+    try:
+        email_tracking = EmailTracking.objects.get(unique_id=unique_id)
+        # Check if the opened_at field is already set or not
+        if not email_tracking.opened_at:
+            email_tracking.opened_at = timezone.now()
+            email_tracking.save()
+            return HttpResponse("Email opened successfully!")
+        else:
+            print("Email already opened")
+            return HttpResponse("Email already opened")
+    except:
+        return HttpResponse("Email tracking record not found!")
+
+
+def track_dashboard(request):
+    emails = Email.objects.all().annotate(total_sent=Sum("sent__total_sent")).order_by("-sent_at")
+
+    context = {
+        "emails": emails,
+    }
+    return render(request, "emails/track_dashboard.html", context)
+
+
+def track_stats(request, pk):
+    email = get_object_or_404(Email, pk=pk)
+    sent = Sent.objects.get(email=email)
+    context = {
+        "email": email,
+        "total_sent": sent.total_sent,
+    }
+    return render(request, "emails/track_stats.html", context)
