@@ -1,0 +1,6 @@
+cd automation       
+env/Scripts/activate
+py manage.py makemigrations
+py manage.py migrate
+celery -A automation  worker --pool=solo -l info
+ngrok http 8000
